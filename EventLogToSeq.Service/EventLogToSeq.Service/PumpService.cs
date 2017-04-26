@@ -1,25 +1,48 @@
-﻿using Serilog;
+﻿using System.Collections.Generic;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Serilog;
 
-namespace AgileWallaby.EventLogToSeq.Service
+namespace AgileWallaby.EventLogToSerilog.Service
 {
     public class PumpService
     {
-        private EventLogHandler _handler;
+        private List<EventLogHandler> _handlers;
 
         public void Start()
         {
-            // Using Serilog.Config.AppSettings?
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("service-settings.json");
+
+            var configuration = builder.Build();
+
             Log.Logger = new LoggerConfiguration()
-                .WriteTo.Seq("http://localhost:5341")
+                .ReadFrom.Configuration(configuration)
                 .CreateLogger();
 
-            //TODO: Create an array of handlers from some configuration file.
-            _handler = new EventLogHandler("Application") {IncludedSources = new[] {"Outlook"}};
+            ConfigurePump(configuration);
+        }
+
+        private void ConfigurePump(IConfiguration configuration)
+        {
+            var config = new PumpConfiguration();
+            configuration.GetSection("EventLog").Bind(config);
+
+            _handlers = new List<EventLogHandler>();
+            foreach (var log in config.Logs)
+            {
+                var handler = new EventLogHandler(log);
+                _handlers.Add(handler);
+            }
         }
 
         public void Stop()
         {
-            _handler.Dispose();
+            foreach (var handler in _handlers)
+            {
+                handler.Dispose();
+            }
         }
     }
 }

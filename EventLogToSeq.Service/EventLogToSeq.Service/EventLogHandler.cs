@@ -4,40 +4,52 @@ using System.Linq;
 using Serilog;
 using Serilog.Events;
 
-namespace AgileWallaby.EventLogToSeq.Service
+namespace AgileWallaby.EventLogToSerilog.Service
 {
     public class EventLogHandler: IDisposable
     {
+        private readonly PumpConfiguration.Log _logConfig;
         private readonly EventLog _eventLog;
         private readonly ILogger _logger;
-        private string[] _includedSources;
 
-        public EventLogHandler(string logName)
+        public EventLogHandler(PumpConfiguration.Log logConfig)
         {
-            _eventLog = new EventLog(logName) { EnableRaisingEvents = true };
+            _logConfig = logConfig;
+            _eventLog = string.IsNullOrWhiteSpace(logConfig.MachineName) ? new EventLog(logConfig.LogName) : new EventLog(logConfig.LogName, logConfig.MachineName);
+            _eventLog.EnableRaisingEvents = true;
+
             _eventLog.EntryWritten += EventLogOnEntryWritten;
 
-            _logger = Log.ForContext("Log Name", logName);
-        }
-
-        public string[] IncludedSources
-        {
-            get => _includedSources;
-            set { _includedSources = value.OrderBy(x=>x).ToArray(); }
+            _logger = Log.ForContext("Log Name", logConfig.LogName);
         }
 
         private void EventLogOnEntryWritten(object sender, EntryWrittenEventArgs eventArgs)
         {
-            var eventLogEntry = eventArgs.Entry;
+            var entry = eventArgs.Entry;
 
-            if (IncludedSources != null && IncludedSources.Length > 0)
+            if (IsExcludedByFilter(entry)) { return; }
+
+            var logLevel = TranslateWindowsEventLogLevelToSerilogLogLevel(entry);
+
+            _logger
+                .ForContext(new EventLogEntryEnricher(entry))
+                .Write(logLevel, "{Message}", entry.Message);
+        }
+
+        private bool IsExcludedByFilter(EventLogEntry eventLogEntry)
+        {
+            var sourceConfig = _logConfig.Sources.FirstOrDefault(x => x.Name == eventLogEntry.Source);
+            if (sourceConfig == null)
             {
-                if (Array.BinarySearch(IncludedSources, eventLogEntry.Source) == -1)
-                {
-                    return;
-                }
+                return true;
             }
 
+            if (sourceConfig.EventIds == null || sourceConfig.EventIds.Length <= 0) { return false; }
+            return Array.IndexOf(sourceConfig.EventIds, eventLogEntry.InstanceId) == -1;
+        }
+
+        private static LogEventLevel TranslateWindowsEventLogLevelToSerilogLogLevel(EventLogEntry eventLogEntry)
+        {
             var eventLogEntryType = eventLogEntry.EntryType;
 
             LogEventLevel level;
@@ -61,10 +73,7 @@ namespace AgileWallaby.EventLogToSeq.Service
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-            
-            _logger
-                .ForContext(new EventLogEntryEnricher(eventLogEntry))
-                .Write(level, "{Message}", eventLogEntry.Message);
+            return level;
         }
 
         public void Dispose()

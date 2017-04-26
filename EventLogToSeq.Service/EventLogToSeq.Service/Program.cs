@@ -1,6 +1,6 @@
 ﻿using Topshelf;
 
-namespace AgileWallaby.EventLogToSeq.Service
+namespace AgileWallaby.EventLogToSerilog.Service
 {
     class Program
     {
@@ -16,6 +16,7 @@ namespace AgileWallaby.EventLogToSeq.Service
                 });
 
                 configurator.SetServiceName("EventLogToSeq");
+                configurator.SetDescription("Pumps messages from Windows Event Log into the Serilog logging framework.");
             });
         }
     }

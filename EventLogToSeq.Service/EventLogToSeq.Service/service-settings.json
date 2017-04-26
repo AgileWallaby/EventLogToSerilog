@@ -1,0 +1,37 @@
+﻿{
+  "Serilog": {
+    "WriteTo": [
+      {
+        "Name": "Seq",
+        "Args": {
+          "serverUrl": "http://localhost:5341"
+        }
+      }
+    ]
+  },
+  "EventLog": {
+    "logs": [
+      {
+        "logName": "Application",
+        "sources": [
+          {
+            "name": "Outlook",
+            "eventIds": [ 1073741869 ]
+          }
+        ]
+      },
+      {
+        "logName": "Application",
+        "machineName": "edgsvr01.edge.local",
+        "sources": [
+          {
+            "name": "SQLISService110"
+          },
+          {
+            "name": "IIS AspNetCore Module" 
+          }
+        ]
+      }
+    ]
+  }
+}
