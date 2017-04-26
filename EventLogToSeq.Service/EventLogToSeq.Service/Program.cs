@@ -4,7 +4,7 @@ namespace AgileWallaby.EventLogToSerilog.Service
 {
     class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             HostFactory.Run(configurator =>
             {
@@ -15,7 +15,7 @@ namespace AgileWallaby.EventLogToSerilog.Service
                     svc.WhenStopped(pump => pump.Stop());
                 });
 
-                configurator.SetServiceName("EventLogToSeq");
+                configurator.SetServiceName("EventLogToSerilog");
                 configurator.SetDescription("Pumps messages from Windows Event Log into the Serilog logging framework.");
             });
         }
