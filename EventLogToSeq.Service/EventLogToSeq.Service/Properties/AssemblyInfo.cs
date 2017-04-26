@@ -1,16 +1,15 @@
 ﻿using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("EventLogToSeq.Service")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("EventLogToSerilog.Service")]
+[assembly: AssemblyDescription("A Windows service for pumping messages from Windows Event Log into the Serilog logging framework.")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("EventLogToSeq.Service")]
-[assembly: AssemblyCopyright("Copyright ©  2017")]
+[assembly: AssemblyCompany("Agile Wallaby")]
+[assembly: AssemblyProduct("EventLogToSerilog.Service")]
+[assembly: AssemblyCopyright("Copyright © 2017 Agile Wallaby")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
